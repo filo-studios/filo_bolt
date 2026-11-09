@@ -1,0 +1,24 @@
+name: Release
+
+on:
+  push:
+    branches: [main]
+    paths: [fxmanifest.lua]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: filo-studios/release-notifier@v1
+        with:
+          webhook: ${{ secrets.DISCORD_PATCH_NOTES_WEBHOOK }}
+          role-id: '1517205170927435958'
+          channel-id: '1519524672641699991'
