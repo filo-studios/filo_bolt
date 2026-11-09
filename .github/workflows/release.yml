@@ -37,6 +37,7 @@ jobs:
               echo 'NOTES_EOF'
             } >> "$GITHUB_OUTPUT"
           fi
+
       - name: Build zip
         if: steps.version.outputs.new == 'true' && (github.event_name != 'workflow_dispatch' || inputs.portal)
         run: git archive --format=zip --prefix="${{ github.event.repository.name }}/" -o "$RUNNER_TEMP/${{ github.event.repository.name }}.zip" HEAD
@@ -50,6 +51,7 @@ jobs:
           makeZip: false
           zipPath: ${{ runner.temp }}/${{ github.event.repository.name }}.zip
           changelog: ${{ steps.version.outputs.notes }}
+
       - name: Post patch notes
         if: steps.version.outputs.new == 'true'
         uses: filo-studios/release-notifier@v1
