@@ -60,4 +60,5 @@ jobs:
           role-id: '1517205170927435958'
           channel-id: '1519524672641699991'
           name: 'Filo Bolt Minigame'
+          docs-url: 'https://filoscripts.com/docs/free_resources/filo_bolt'
           portal-url: 'https://portal.cfx.re/assets/granted-assets'
