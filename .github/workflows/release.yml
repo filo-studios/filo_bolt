@@ -5,6 +5,11 @@ on:
     branches: [main]
     paths: [fxmanifest.lua]
   workflow_dispatch:
+    inputs:
+      portal:
+        description: Upload to the Cfx portal
+        type: boolean
+        default: true
 
 permissions:
   contents: write
@@ -26,17 +31,25 @@ jobs:
             echo "new=false" >> "$GITHUB_OUTPUT"
           else
             echo "new=true" >> "$GITHUB_OUTPUT"
-            awk -v v="$v" '/^## /{p = ($2==v || $2=="v"v || $2=="["v"]"); next} p' CHANGELOG.md > "$RUNNER_TEMP/notes.md" || true
+            {
+              echo 'notes<<NOTES_EOF'
+              tr -d '\r' < CHANGELOG.md | awk -v v="$v" '/^## /{p = ($2==v || $2=="v"v || $2=="["v"]"); next} p'
+              echo 'NOTES_EOF'
+            } >> "$GITHUB_OUTPUT"
           fi
+      - name: Build zip
+        if: steps.version.outputs.new == 'true' && (github.event_name != 'workflow_dispatch' || inputs.portal)
+        run: git archive --format=zip --prefix="${{ github.event.repository.name }}/" -o "$RUNNER_TEMP/${{ github.event.repository.name }}.zip" HEAD
 
       - name: Upload to Cfx portal
-        if: steps.version.outputs.new == 'true'
+        if: steps.version.outputs.new == 'true' && (github.event_name != 'workflow_dispatch' || inputs.portal)
         uses: Tynopia/cfx-portal-upload@9a73f3fd7b928005d551a77c3d9cd20e9b396e32 # v1.2.6
         with:
           cookie: ${{ secrets.FORUM_COOKIE }}
           assetId: 1031296
-          changelogFile: ${{ runner.temp }}/notes.md
-
+          makeZip: false
+          zipPath: ${{ runner.temp }}/${{ github.event.repository.name }}.zip
+          changelog: ${{ steps.version.outputs.notes }}
       - name: Post patch notes
         if: steps.version.outputs.new == 'true'
         uses: filo-studios/release-notifier@v1
