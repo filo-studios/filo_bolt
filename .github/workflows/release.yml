@@ -17,7 +17,29 @@ jobs:
         with:
           fetch-depth: 0
 
-      - uses: filo-studios/release-notifier@v1
+      - name: Check for new version
+        id: version
+        run: |
+          v=$(grep -oP "^\s*version\s+['\"]\K[^'\"]+" fxmanifest.lua)
+          echo "version=$v" >> "$GITHUB_OUTPUT"
+          if git rev-parse -q --verify "refs/tags/v$v" >/dev/null; then
+            echo "new=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "new=true" >> "$GITHUB_OUTPUT"
+            awk -v v="$v" '/^## /{p = ($2==v || $2=="v"v || $2=="["v"]"); next} p' CHANGELOG.md > "$RUNNER_TEMP/notes.md" || true
+          fi
+
+      - name: Upload to Cfx portal
+        if: steps.version.outputs.new == 'true'
+        uses: Tynopia/cfx-portal-upload@9a73f3fd7b928005d551a77c3d9cd20e9b396e32 # v1.2.6
+        with:
+          cookie: ${{ secrets.FORUM_COOKIE }}
+          assetId: 1031296
+          changelogFile: ${{ runner.temp }}/notes.md
+
+      - name: Post patch notes
+        if: steps.version.outputs.new == 'true'
+        uses: filo-studios/release-notifier@v1
         with:
           webhook: ${{ secrets.DISCORD_PATCH_NOTES_WEBHOOK }}
           role-id: '1517205170927435958'
