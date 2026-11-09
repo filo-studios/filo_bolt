@@ -57,3 +57,5 @@ jobs:
           webhook: ${{ secrets.DISCORD_PATCH_NOTES_WEBHOOK }}
           role-id: '1517205170927435958'
           channel-id: '1519524672641699991'
+          name: 'Filo Bolt Minigame'
+          portal-url: 'https://portal.cfx.re/assets/granted-assets'
